@@ -1,9 +1,15 @@
+from __future__ import annotations 
 import datetime
-from .usuario import Usuario # Para la asociación con Usuario
+
+from typing import TYPE_CHECKING 
+# Solo importa Usuario si estamos en un contexto de verificación de tipos
+if TYPE_CHECKING:
+    from .usuario import Usuario # Para la anotación de tipo
+    from .ahorro import Ahorro
 from .ingreso import Ingreso
 from .gasto import Gasto
-from .ahorro import Ahorro
-from .presupuesto import Presupuesto # Necesitamos esta clase primero si PerfilFinanciero la gestiona
+from .presupuesto import Presupuesto
+from .alerta import Alerta
 
 
 class PerfilFinanciero:
@@ -30,6 +36,7 @@ class PerfilFinanciero:
         """Añade un gasto al perfil y actualiza el balance y presupuesto."""
         self.gastos_registrados.append(gasto)
         self.calcular_balance()
+        self.verificar_alertas_balance()
         # Si hay un presupuesto activo para el mes/año del gasto, restar el monto
         mes_anio_clave = f"{gasto.fecha.month}_{gasto.fecha.year}"
         if mes_anio_clave in self.presupuestos:
@@ -73,6 +80,16 @@ class PerfilFinanciero:
             for a in self.metas_ahorro:
                 resumen += f"  - {a.estado_ahorro()}\n"
         return resumen
+    
+    def agregar_ahorro(self, ahorro: Ahorro):
+        """Agrega una meta de ahorro a la lista del perfil."""
+        self.metas_ahorro.append(ahorro)
+        
+    def agregar_presupuesto(self, presupuesto: Presupuesto):
+        """Agrega un presupuesto al perfil financiero."""
+        clave = f"{presupuesto.mes}_{presupuesto.anio}"
+        self.presupuestos[clave] = presupuesto
+        print(f"Presupuesto {presupuesto.mes}/{presupuesto.anio} agregado al perfil.")
 
     def obtener_resumen_financiero_presupuesto(self, mes: int, anio: int) -> str:
         """Obtiene el resumen de presupuesto para un mes y año específicos."""
@@ -80,6 +97,23 @@ class PerfilFinanciero:
         if clave in self.presupuestos:
             return self.presupuestos[clave].resumen_presupuesto()
         return f"No hay presupuesto configurado para {mes}/{anio}."
+    
+    def verificar_alertas_balance(self):
+        """Genera una alerta si el balance actual es negativo."""
+        if self.balance_actual < 0:
+            mensaje = f"⚠️ Alerta: tu balance actual es negativo: ${self.balance_actual:.2f}"
+            
+            # Crear alerta
+            id_alerta = len(self.usuario.alertas) + 1
+            alerta = Alerta(
+                id_alerta=id_alerta,
+                usuario=self.usuario,
+                tipo="balance",
+                mensaje=mensaje,
+                fecha=datetime.date.today()
+            )
+            self.usuario.alertas.append(alerta)
+            alerta.enviar_notificacion()
 
     def obtener_resumen_ahorro_y_recomendaciones(self) -> str:
         """Evalúa el ahorro y genera recomendaciones."""

@@ -84,7 +84,9 @@ class Presupuesto:
         """Devuelve verdadero si el gasto de la categoría supera el límite asignado."""
         categoria_nombre = categoria.nombre
         if categoria_nombre in self.categorias:
-            return self.categorias[categoria_nombre]['gastado_actual'] > self.categorias[categoria_nombre]['limite']
+            limite = self.categorias[categoria_nombre]['limite']
+            gastado = self.categorias[categoria_nombre]['gastado_actual']
+            return gastado > limite
         return False # Si la categoría no está presupuestada, no hay límite que sobrepasar
 
     def modificar_ingreso_total(self, monto: float):

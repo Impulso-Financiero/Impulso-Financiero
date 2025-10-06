@@ -1,6 +1,10 @@
+from __future__ import annotations 
 import datetime
-from .perfil_financiero import PerfilFinanciero 
-from .alerta import Alerta # Si Alerta también se importa aquí
+from typing import TYPE_CHECKING 
+# Solo importa PerfilFinanciero si estamos en un contexto de verificación de tipos (por ejemplo, para herramientas de linting)
+if TYPE_CHECKING:
+    from .perfil_financiero import PerfilFinanciero 
+    from .alerta import Alerta # Si Alerta también se importa aquí
 
 class Usuario:
     def __init__(self, id_usuario: int, nombre: str, email: str, password: str):
@@ -8,7 +12,7 @@ class Usuario:
         self.nombre = nombre
         self.email = email
         self.password = password
-        self.perfil_financiero = None # Se asignará más tarde, ej. al registrar
+        self.perfil_financiero: PerfilFinanciero | None = None # Usa PerfilFinanciero en la anotación
         self.alertas = [] # Lista para almacenar objetos Alerta
 
     def registrar_usuario(self, nombre: str, email: str, password: str):
