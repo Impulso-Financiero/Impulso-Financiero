@@ -2,9 +2,10 @@ import sys
 from views.menu_autenticacion import menu_autenticacion
 
 def main():
+    """Función principal de la aplicación."""
     while True:
         print("\n=== IMPULSO FINANCIERO ===")
-        print("1. Iniciar sesión / Registrarse")
+        print("1. Acceder al sistema")
         print("0. Salir")
 
         opcion = input("Seleccioná una opción: ").strip()

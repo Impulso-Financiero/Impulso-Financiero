@@ -39,18 +39,34 @@ class Ahorro:
                 return monto_restante / meses
         return 0.0
 
-    def recomendacion_mensual(self, ingresos_netos: float, gastos_fijos: float) -> str:
-        """Genera una recomendación sobre cuánto ahorrar cada mes."""
-        # Esta lógica es simplificada
-        monto_sugerido = (ingresos_netos - gastos_fijos) * 0.10 # Sugerir un 10% del saldo disponible
-        if monto_sugerido > 0:
-            return f"Se recomienda ahorrar al menos ${monto_sugerido:.2f} mensuales para tus metas."
-        return "Considera ajustar tus finanzas para poder ahorrar."
+    def recomendacion_mensual(self) -> str:
+        """
+        Genera una recomendación sobre cuánto ahorrar cada mes para alcanzar la meta.
+        """
+        hoy = datetime.date.today()
 
+        if self.fecha_meta is None or self.fecha_meta <= hoy:
+            return f"¡Tu meta '{self.tipo}' ya pasó o no tiene fecha límite! Por favor, actualiza la fecha."
+
+        # Calcula el número de meses restantes.
+        meses_restantes = (self.fecha_meta.year - hoy.year) * 12 + (self.fecha_meta.month - hoy.month)
+        if meses_restantes <= 0:
+            return f"¡Tu meta '{self.tipo}' ya debería haberse cumplido! Revisa tu plazo."
+
+        monto_pendiente = self.meta - self.monto_actual
+
+        if monto_pendiente <= 0:
+            return f"¡Felicidades! Ya alcanzaste o superaste tu meta de {self.tipo}."
+
+        monto_sugerido = monto_pendiente / meses_restantes
+
+        return f"Para alcanzar tu meta de {self.tipo} de ${self.meta:.2f}, se recomienda ahorrar al menos ${monto_sugerido:.2f} mensuales."
+    
     def estado_ahorro(self) -> str:
         """Devuelve un resumen simple del estado actual y la meta del ahorro."""
         progreso = self.calcular_progreso()
-        return f"Ahorro ID: {self.id_ahorro}, Actual: ${self.monto_actual}, Meta: ${self.meta}, Progreso: {progreso:.2f}%"
+        fecha_actual = datetime.date.today()
+        return f"Ahorro ID: {self.id_ahorro}, Actual: ${self.monto_actual}, Meta: ${self.meta}, Progreso: {progreso:.2f}%, Fecha actual: {fecha_actual}, Fecha de Finalización: {self.fecha_meta}"
 
     def __str__(self):
         return f"Meta de Ahorro: {self.meta}$, Actual: ${self.monto_actual}"

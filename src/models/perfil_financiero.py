@@ -21,6 +21,7 @@ class PerfilFinanciero:
         self.presupuestos = {}          # Diccionario: {f"mes_anio": Presupuesto_objeto}
         self.balance_actual = 0.0
         self.nivel_salud_financiera = "Desconocido" # Se calcula luego
+        self.deudas_pendientes = [] 
 
     def agregar_ingreso(self, ingreso: Ingreso):
         """Añade un ingreso al perfil y actualiza el balance y presupuesto."""
@@ -66,7 +67,7 @@ class PerfilFinanciero:
         """Devuelve un resumen completo de ingresos, gastos, ahorro y nivel de salud financiera."""
         resumen = f"--- Resumen Financiero de {self.usuario.nombre} ---\n"
         resumen += f"Balance Actual: {self.balance_actual}$\n"
-        resumen += f"Nivel de Salud Financiera: {self.nivel_salud_financiera}\n"
+        #resumen += f"Nivel de Salud Financiera: {self.nivel_salud_financiera}\n"
         resumen += "\nIngresos Registrados:\n"
         for i in self.ingresos_registrados:
             resumen += f"  - {i.obtener_detalle()}\n"
@@ -98,6 +99,50 @@ class PerfilFinanciero:
             return self.presupuestos[clave].resumen_presupuesto()
         return f"No hay presupuesto configurado para {mes}/{anio}."
     
+    def obtener_datos_agregados_para_reglas(self, mes: int, anio: int) -> dict:
+        """
+        Recopila y agrega los datos necesarios de PerfilFinanciero
+        para que la clase ReglasLogicas pueda evaluarlos.
+        """
+        gastos_total_mes = 0.0
+        ingreso_total_mes = 0.0
+        gastos_delivery_mes = 0.0
+        gastos_ocio_mes = 0.0
+
+        # Filtrar transacciones del mes y año específicos
+        transacciones_mes_actual = [
+            t for t in self.ingresos_registrados + self.gastos_registrados
+            if t.fecha.month == mes and t.fecha.year == anio
+        ]
+
+        # Calcular agregados
+        for t in transacciones_mes_actual:
+            if isinstance(t, Gasto):
+                gastos_total_mes += t.monto
+                # Asumiendo que 'Delivery' y 'Entretenimiento' son categorías de gasto
+                if t.categoria.nombre == "Delivery":
+                    gastos_delivery_mes += t.monto
+                if t.categoria.nombre == "Entretenimiento":
+                    gastos_ocio_mes += t.monto
+            elif isinstance(t, Ingreso):
+                ingreso_total_mes += t.monto
+        
+        # Calcular ahorro_mensual y ahorro_excedente para el mes
+        ahorro_mensual_calculado = ingreso_total_mes - gastos_total_mes
+        # Esto es una simplificación, tu lógica de ahorro_excedente real puede ser más compleja
+        ahorro_objetivo_pct = 0.10 # Ejemplo: objetivo del 10% de ahorro
+        ahorro_excedente_calculado = max(0, ahorro_mensual_calculado - (ingreso_total_mes * ahorro_objetivo_pct))
+        
+        return {
+            'gastos_total': gastos_total_mes,
+            'ingreso': ingreso_total_mes,
+            'ahorro_mensual': ahorro_mensual_calculado,
+            'gastos_delivery': gastos_delivery_mes,
+            'gastos_ocio': gastos_ocio_mes,
+            'ahorro_excedente': ahorro_excedente_calculado,
+            # Añadir más datos según necesiten tus reglas (ej. total deuda, etc.)
+        }
+    
     def verificar_alertas_balance(self):
         """Genera una alerta si el balance actual es negativo."""
         if self.balance_actual < 0:
@@ -114,33 +159,38 @@ class PerfilFinanciero:
             )
             self.usuario.alertas.append(alerta)
             alerta.enviar_notificacion()
+            
+    def obtener_ahorro_actual(self) -> float:
+        """Devuelve el balance actual como una medida de ahorro inicial."""
+        return self.balance_actual
+
+    def obtener_deuda_total(self) -> float:
+        """Calcula y devuelve el total de las deudas pendientes."""
+        return sum(deuda.monto for deuda in self.deudas_pendientes)
 
     def obtener_resumen_ahorro_y_recomendaciones(self) -> str:
         """Evalúa el ahorro y genera recomendaciones."""
         resumen_total_ahorros = ""
-        recomendaciones = ""
+        recomendaciones_list = []  # Usamos una lista para almacenar las recomendaciones
 
         if self.metas_ahorro:
             for meta_ahorro in self.metas_ahorro:
+                # Resumen individual del estado de cada ahorro
                 resumen_estado_individual = meta_ahorro.estado_ahorro()
                 progreso_individual = meta_ahorro.calcular_progreso()
                 resumen_total_ahorros += f"- {resumen_estado_individual} (Progreso: {progreso_individual:.2f}%)\n"
 
-            # Suponiendo que tenemos una forma de obtener ingresos y gastos actuales para la recomendación
-            # Esto puede ser sumando los registrados en el mes actual, etc.
-            ingresos_calculados = sum(i.monto for i in self.ingresos_registrados if i.fecha.month == datetime.date.today().month)
-            gastos_calculados = sum(g.monto for g in self.gastos_registrados if g.fecha.month == datetime.date.today().month)
+                # Genera la recomendación para la meta actual
+                recomendacion_individual = meta_ahorro.recomendacion_mensual()
+                recomendaciones_list.append(recomendacion_individual)
 
-            # Generar recomendaciones basadas en los datos consolidados y del perfil
-            if self.metas_ahorro: # La recomendación se basa en la primera meta de ahorro o una consolidada
-                 recomendaciones = self.metas_ahorro[0].recomendacion_mensual(ingresos_calculados, gastos_calculados)
-
+                # Une todas las recomendaciones en una sola cadena
+                recomendaciones = "\n".join(recomendaciones_list)
         else:
             resumen_total_ahorros = "No hay metas de ahorro definidas."
             recomendaciones = "Define una meta de ahorro para recibir recomendaciones."
 
         return f"--- Resumen de Ahorros ---\n{resumen_total_ahorros}\n--- Recomendaciones ---\n{recomendaciones}"
-
 
     def __str__(self):
         return f"Perfil Financiero de {self.usuario.nombre}"
