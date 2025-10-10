@@ -3,7 +3,7 @@ from .categoria import Categoria # Importa la clase Categoria
 
 class Ingreso:
     def __init__(self, id_ingreso: int, monto: float, categoria: Categoria, fecha: datetime.date, tipo: str):
-        self.id_ingreso = id_ingreso
+        self.id = id_ingreso
         self.monto = monto
         self.categoria = categoria # Objeto Categoria
         self.fecha = fecha
@@ -24,11 +24,11 @@ class Ingreso:
             self.categoria = categoria
         if fecha:
             self.fecha = fecha
-        print(f"Ingreso {self.id_ingreso} modificado.")
+        print(f"Ingreso {self.id} modificado.")
 
     def obtener_detalle(self) -> str:
         """Devuelve una cadena con los detalles completos del ingreso."""
-        return f"Ingreso ID: {self.id_ingreso}, Monto: ${self.monto}, Categoría: {self.categoria.nombre}, Fecha: {self.fecha}, Tipo: {self.tipo}"
+        return f"Ingreso ID: {self.id}, Monto: ${self.monto}, Categoría: {self.categoria.nombre}, Fecha: {self.fecha}, Tipo: {self.tipo}"
 
     def __str__(self):
         return f"Ingreso de ${self.monto} en {self.categoria.nombre} el {self.fecha}"

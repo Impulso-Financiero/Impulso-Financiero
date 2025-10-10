@@ -2,17 +2,17 @@ import pytest
 import datetime
 import unittest.mock
 # Importa las clases a testear desde la carpeta models
-from models.usuario import Usuario
-from models.perfil_financiero import PerfilFinanciero
-from models.categoria import Categoria
-from models.ingreso import Ingreso
-from models.gasto import Gasto
-from models.ahorro import Ahorro
-from models.presupuesto import Presupuesto
-from models.alerta import Alerta
+from src.models.usuario import Usuario
+from src.models.perfil_financiero import PerfilFinanciero
+from src.models.categoria import Categoria
+from src.models.ingreso import Ingreso
+from src.models.gasto import Gasto
+from src.models.ahorro import Ahorro
+from src.models.presupuesto import Presupuesto
+from src.models.alerta import Alerta
 
 # Importa las constantes si las usas en las pruebas o para inicialización
-from utils.CONSTANTES import CATEGORIAS_DISPONIBLES
+from src.utils.CONSTANTES import CATEGORIAS_INGRESOS_DISPONIBLES, CATEGORIAS_GASTOS_DISPONIBLES
 
 
 # --- Fixtures para reutilizar objetos inicializados en las pruebas ---
@@ -198,7 +198,7 @@ def test_presupuesto_restar_gasto_y_alerta(presupuesto_test, gasto_test, usuario
     _, cat_alimentacion, _ = categorias_ingreso_gasto
 
     # Usar el contexto de patch para simular la función
-    with unittest.mock.patch('models.alerta.Alerta.enviar_notificacion') as mock_enviar_notificacion:
+    with unittest.mock.patch('src.models.alerta.Alerta.enviar_notificacion') as mock_enviar_notificacion:
         # Configurar el gasto para que sea mayor que el límite del presupuesto
         presupuesto_test.categorias[cat_alimentacion.nombre]['limite'] = 50.0
         gasto_test.monto = 60.0
