@@ -159,7 +159,7 @@ No pretende reemplazar una formación formal, sino servir como puente entre la t
 
 🤝 Autores
 Grupo 20 – Tecnicatura Superior en Desarrollo de Software
-Ariel Nicolás Romano – Lógica y Matemática
-Luis Nicolás Asensio Lubrano – Programación y Desarrollo
+Ariel Nicolás Romano – Programación y Desarrollo
+Luis Nicolás Asensio Lubrano – Lógica y Matemática
 
 📂 Repositorio oficial: https://github.com/Impulso-Financiero/Impulso-Financiero
